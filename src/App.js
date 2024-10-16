@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import ProjectList from "./components/ProjectList";
-import ProjectDetail from "./components/ProjectDetail";
-import Login from "./components/Login";
+import ProjectListPage from "./pages/ProjectListPage";
+import ProjectDetailPage from "./pages/ProjectDetailPage";
+import LoginPage from "./pages/LoginPage";
 import data from "./fakeData.json";
 
 function App() {
@@ -10,7 +10,18 @@ function App() {
   const [selectedTag, setSelectedTag] = useState("All");
   const [darkMode, setDarkMode] = useState(false);
 
-  // Extract unique tags from the data
+  useEffect(() => {
+    const storedTheme = localStorage.getItem("darkMode");
+    
+    if (storedTheme) {
+      setDarkMode(storedTheme === "true");
+    } else {
+      const prefersDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      setDarkMode(prefersDarkMode);
+      localStorage.setItem("darkMode", prefersDarkMode.toString());
+    }
+  }, []);
+
   const uniqueTags = [
     "All",
     ...new Set(
@@ -20,7 +31,6 @@ function App() {
     ),
   ];
 
-  // Filtered projects based on the search term and selected tag
   const filteredProjects = data.projects.filter((project) => {
     const matchesSearch =
       project.titre.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -39,7 +49,9 @@ function App() {
   });
 
   const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    localStorage.setItem("darkMode", newDarkMode.toString());
   };
 
   return (
@@ -57,7 +69,7 @@ function App() {
             <Route
               path="/"
               element={
-                <ProjectList
+                <ProjectListPage
                   data={filteredProjects}
                   searchTerm={searchTerm}
                   setSearchTerm={setSearchTerm}
@@ -69,11 +81,11 @@ function App() {
             />
             <Route
               path="/project/:id"
-              element={<ProjectDetail data={data} />}
+              element={<ProjectDetailPage data={data} />}
             />
             <Route
               path="/login"
-              element={<Login data={data} />}
+              element={<LoginPage data={data} />}
             />
           </Routes>
         </Router>

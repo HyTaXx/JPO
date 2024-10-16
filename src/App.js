@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import ProjectList from "./components/ProjectList";
 import ProjectDetail from "./components/ProjectDetail";
+import Login from "./components/Login";
 import data from "./fakeData.json";
 
 function App() {
@@ -69,6 +70,10 @@ function App() {
             <Route
               path="/project/:id"
               element={<ProjectDetail data={data} />}
+            />
+            <Route
+              path="/login"
+              element={<Login data={data} />}
             />
           </Routes>
         </Router>

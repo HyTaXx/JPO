@@ -4,6 +4,11 @@ module.exports = {
     darkMode: 'class',
     theme: {
         extend: {},
+        color: {
+            'lightIIM': '#FF571A',
+            'IIM': '#FF6934',
+            'darkIIM': '#FF8F67',
+        },
     },
     plugins: [],
 };

@@ -1,0 +1,82 @@
+{
+    "projects": [
+      {
+        "id": 1,
+        "titre": "Projet Alpha",
+        "description": "Ce projet explore les concepts...",
+        "auteurs": ["Alice Dupont", "Jean Martin"],
+        "key_order": 1,
+        "tags": [
+          {
+            "id": 1,
+            "name": "Innovation"
+          },
+          {
+            "id": 2,
+            "name": "Data Science"
+          }
+        ],
+        "medias": [
+          {
+            "id": 1,
+            "title": "Image de couverture",
+            "description": "Couverture du projet Alpha",
+            "media_url": "https://via.placeholder.com/150",
+            "key_order": 1
+          },
+          {
+            "id": 2,
+            "title": "Graphique de data",
+            "description": "Graphique illustrant les résultats de la data",
+            "media_url": "https://via.placeholder.com/150",
+            "key_order": 2
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "titre": "Projet Beta",
+        "description": "Une étude approfondie de la data...",
+        "auteurs": ["Clara Roche", "Marc Lefevre"],
+        "key_order": 2,
+        "tags": [
+          {
+            "id": 1,
+            "name": "Innovation"
+          }
+        ],
+        "medias": [
+          {
+            "id": 3,
+            "title": "Image Beta",
+            "description": "Image illustrant les résultats de l'étude Beta",
+            "media_url": "https://via.placeholder.com/150",
+            "key_order": 1
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "titre": "Projet Gamma",
+        "description": "Un projet innovant sur l'IA...",
+        "auteurs": ["Sophie Boucher", "Pierre Durand"],
+        "key_order": 3,
+        "tags": [
+          {
+            "id": 3,
+            "name": "Intelligence Artificielle"
+          }
+        ],
+        "medias": [
+          {
+            "id": 4,
+            "title": "IA Process",
+            "description": "Illustration du processus d'intelligence artificielle",
+            "media_url": "https://via.placeholder.com/150",
+            "key_order": 1
+          }
+        ]
+      }
+    ]
+  }
+  

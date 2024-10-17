@@ -1,55 +1,56 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { projects } from '../mocks'
-import { isAdmin } from "@services";
 import { Loader } from "@components";
 
 function ProjectList() {
+  const [projects, setProjects] = useState([]);
+  const [tags, setTags] = useState(["All"]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTag, setSelectedTag] = useState("All");
-  const [isAdminUser, setIsAdminUser] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Fetching projects
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const response = await fetch(`https://directus-ucmn.onrender.com/items/jpo_project?fields=*, tags.jpo_tags_id.name, medias.*`);
+        const data = await response.json();
+        setProjects(data.data);
+      } catch (error) {
+        console.error("Error fetching project data:", error);
+      }
+    };
+
+    const fetchTags = async () => {
+      try {
+        const response = await fetch(`https://directus-ucmn.onrender.com/items/jpo_tags`);
+        const data = await response.json();
+        const tagNames = data.data.map((tag) => tag.name);
+        setTags(["All", ...tagNames]);
+      } catch (error) {
+        console.error("Error fetching tags:", error);
+      }
+    };
+
+    fetchProjects();
+    fetchTags();
+    setIsLoading(false);
+  }, []);
 
   const filteredProjects = projects.filter((project) => {
     const matchesSearch =
-      project.titre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      project.description
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      project.auteurs.some((auteur) =>
-        auteur.toLowerCase().includes(searchTerm.toLowerCase())
+      project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      project.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      project.authors.some((author) =>
+        `${author.first_name} ${author.last_name}`.toLowerCase().includes(searchTerm.toLowerCase())
       );
 
     const matchesTag =
       selectedTag === "All" ||
-      project.tags.some((tag) => tag.name === selectedTag);
+      (project.tags && project.tags.some((tag) => tag.jpo_tags_id.name === selectedTag));
 
     return matchesSearch && matchesTag;
   });
-
-  const uniqueTags = [
-    "All",
-    ...new Set(
-      projects.flatMap((project) =>
-        project.tags.map((tag) => tag.name)
-      )
-    ),
-  ];
-
-  useEffect(() => {
-    const checkAdminStatus = async () => {
-      const accessToken = localStorage.getItem("access_token") || "";
-      if (!accessToken) {
-        setIsAdminUser(false);
-      } else {
-        const userIsAdmin = await isAdmin(accessToken);
-        setIsAdminUser(userIsAdmin);
-      }
-      setIsLoading(false);
-    };
-
-    checkAdminStatus();
-  }, []);
 
   if (isLoading) {
     return <Loader />;
@@ -57,30 +58,36 @@ function ProjectList() {
 
   return (
     <div className="p-8">
-      <h1 className="text-4xl font-bold text-[#F08113] dark:text-orange-400 text-center mb-6">
-        Liste des Projets
-      </h1>
+      <header className="text-center mb-12">
+        <h1 className="text-5xl font-bold text-[#F08113] dark:text-orange-400 mb-4">
+          Découvrez l'Innovation et la Créativité de Demain
+        </h1>
+        <p className="text-xl text-gray-700 dark:text-gray-300 max-w-2xl mx-auto mb-8">
+          Nos étudiants repoussent les limites de la créativité et de la technologie. Explorez leurs projets, des œuvres qui transforment leurs idées en réalisations concrètes et innovantes. Embarquez dans cette aventure et découvrez le talent de demain.
+        </p>
+        <Link
+          to="#projects-section"
+          className="bg-[#F08113] dark:bg-orange-400 text-white py-3 px-6 rounded-full text-lg font-semibold shadow-md hover:bg-[#cf6f0c] dark:hover:bg-orange-300 transition"
+        >
+          Découvrez nos Projets
+        </Link>
+      </header>
 
-      <div className="flex justify-center mb-6">
+      <div id="projects-section" className="flex flex-col md:flex-row justify-center mb-8 gap-4">
         <input
           type="text"
           placeholder="Recherche par titre, auteur ou description..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="p-2 border border-gray-300 rounded w-96 shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-600"
+          className="p-3 border border-gray-300 rounded-full w-full md:w-96 shadow-md dark:bg-gray-700 dark:text-white dark:border-gray-600 transition focus:ring-2 focus:ring-[#F08113]"
         />
-      </div>
-
-      <div className="flex justify-center mb-6">
         <select
           value={selectedTag}
           onChange={(e) => setSelectedTag(e.target.value)}
-          className="p-2 border border-gray-300 rounded shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-600"
+          className="p-3 border border-gray-300 rounded-full shadow-md dark:bg-gray-700 dark:text-white dark:border-gray-600 transition focus:ring-2 focus:ring-[#F08113]"
         >
-          {uniqueTags.map((tag, index) => (
-            <option key={index} value={tag}>
-              {tag}
-            </option>
+          {tags.map((tag, index) => (
+            <option key={index} value={tag}>{tag}</option>
           ))}
         </select>
       </div>
@@ -89,47 +96,31 @@ function ProjectList() {
         {filteredProjects.map((project) => (
           <div
             key={project.id}
-            className="p-6 bg-white dark:bg-gray-800 rounded shadow-lg border border-[#F08113] dark:border-orange-500 transition transform hover:scale-105 hover:shadow-2xl hover:z-10 group"
+            className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-[#F08113] dark:border-orange-500 transform hover:scale-105 hover:shadow-2xl hover:z-10 transition duration-300 ease-in-out group"
           >
-            <h2 className="text-2xl font-bold text-[#F08113] dark:text-orange-400 mb-2">
-              {project.titre}
+            <h2 className="text-3xl font-semibold text-[#F08113] dark:text-orange-400 mb-3">
+              {project.title}
             </h2>
-            <p className="text-gray-700 dark:text-gray-300 mb-2">{project.description}</p>
-            <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-              <strong>Auteurs : </strong>
-              {project.auteurs.join(", ")}
+            <p className="text-gray-700 dark:text-gray-300 mb-3">
+              {project.description}
+            </p>
+            <div className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+              <strong>Auteurs :</strong> {project.authors.map(author => `${author.first_name} ${author.last_name}`).join(", ")}
             </div>
             <div className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-              <strong>Tags : </strong>
-              {project.tags.map((tag) => (
+              <strong>Tags :</strong>{" "}
+              {project.tags && project.tags.map((tag, index) => (
                 <span
-                  key={tag.id}
-                  className="inline-block bg-[#F08113] dark:bg-orange-400 text-white px-2 py-1 rounded-full mr-2"
+                  key={index}
+                  className="inline-block bg-[#F08113] dark:bg-orange-400 text-white px-3 py-1 rounded-full mr-2"
                 >
-                  {tag.name}
+                  {tag.jpo_tags_id.name}
                 </span>
               ))}
             </div>
-            <Link to={`/project/${project.id}`} className="text-[#F08113] dark:text-orange-400 hover:underline">
+            <Link to={`/project/${project.id}`} className="text-[#F08113] dark:text-orange-400 font-medium hover:underline">
               Voir plus
             </Link>
-
-            {isAdminUser && (
-              <div className="mt-4">
-                <Link
-                  to={`/project/${project.id}/edit`}
-                  className="text-blue-500 hover:underline mr-4"
-                >
-                  Modifier
-                </Link>
-                <button
-                  className="text-red-500 hover:underline"
-                  onClick={() => console.log(`Supprimer le projet ${project.id}`)}
-                >
-                  Supprimer
-                </button>
-              </div>
-            )}
           </div>
         ))}
       </div>

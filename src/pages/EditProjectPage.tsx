@@ -32,24 +32,30 @@ function EditProject() {
   }, [id]);
 
   const handleSubmit = async (formData) => {
-    const formDataObj = new FormData();
-    formDataObj.append("title", formData.title);
-    formDataObj.append("description", formData.description);
-    formDataObj.append("authors", JSON.stringify(formData.authors));
-    formDataObj.append("tags", JSON.stringify(formData.tags));
+    const formDataObj:any = {};
+    console.log(formData);
+    formDataObj.title = formData.title;
+    formDataObj.description = formData.description;
+    formDataObj.authors = JSON.stringify(formData.authors);
+    formDataObj.tags =  JSON.stringify(formData.tags);
     if (formData.mediaFile) formDataObj.append("media", formData.mediaFile);
+    
 
     const accessToken = localStorage.getItem("access_token");
 
     try {
-      await fetch(`https://directus-ucmn.onrender.com/items/jpo_project/${id}`, {
+      const response = await fetch(`https://directus-ucmn.onrender.com/items/jpo_project/${id}`, {
         method: "PATCH",
         headers: {
-          Authorization: `Bearer ${accessToken}`
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
         },
-        body: formDataObj
+        body: JSON.stringify(formDataObj)
       });
-      navigate("/");
+      console.log(JSON.stringify(formDataObj))
+      console.log(response);
+      console.log(formDataObj);
+      // navigate("/");
     } catch (error) {
       console.error("Error updating project:", error);
     }

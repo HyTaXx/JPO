@@ -1,7 +1,7 @@
 import './App.css'
 import { Layout } from '@components';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import { ProjectList, ProjectDetail, Login, EditProject } from '@pages'
+import { ProjectList, ProjectDetail, Login, EditProject, AddProject } from '@pages'
 
 const router = createBrowserRouter([
   {
@@ -11,6 +11,10 @@ const router = createBrowserRouter([
       {
         path: "/",
         element: <ProjectList />
+      },
+      {
+        path: "project/create",
+        element: <AddProject />,
       },
       {
         path: "project/:id",

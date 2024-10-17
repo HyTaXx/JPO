@@ -1,7 +1,8 @@
-import './App.css'
+import './App.css';
 import { Layout } from '@components';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import { ProjectList, ProjectDetail, Login, EditProject, AddProject } from '@pages'
+import { ProjectList, ProjectDetail, Login, EditProject, AddProject } from '@pages';
+import { AuthProvider } from "./contexts/AuthContext"
 
 const router = createBrowserRouter([
   {
@@ -10,7 +11,7 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/",
-        element: <ProjectList />
+        element: <ProjectList />,
       },
       {
         path: "project/create",
@@ -32,14 +33,16 @@ const router = createBrowserRouter([
         path: "login",
         element: <Login />,
       },
-    ]
+    ],
   },
 ]);
 
 function App() {
   return (
-    <RouterProvider router={router} />
-  )
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
+  );
 }
 
-export default App
+export default App;

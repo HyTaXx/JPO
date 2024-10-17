@@ -1,56 +1,76 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Loader } from "@components";
+import { useAuth } from "../contexts/AuthContext"; // Import useAuth context
+
+interface Project {
+  id: number;
+  title: string | null;
+  description: string | null;
+  authors: { first_name: string | null; last_name: string | null }[];
+  tags: { jpo_tags_id: { name: string | null } }[];
+}
 
 function ProjectList() {
-  const [projects, setProjects] = useState([]);
-  const [tags, setTags] = useState(["All"]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedTag, setSelectedTag] = useState("All");
-  const [isLoading, setIsLoading] = useState(true);
+  const { isUserAdmin } = useAuth(); // Destructure isUserAdmin from useAuth
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [tags, setTags] = useState<string[]>(["All"]);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [selectedTag, setSelectedTag] = useState<string>("All");
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Fetching projects
   useEffect(() => {
     const fetchProjects = async () => {
-      try {
-        const response = await fetch(`https://directus-ucmn.onrender.com/items/jpo_project?fields=*, tags.jpo_tags_id.name, medias.*`);
-        const data = await response.json();
-        setProjects(data.data);
-      } catch (error) {
-        console.error("Error fetching project data:", error);
-      }
+      const response = await fetch(`https://directus-ucmn.onrender.com/items/jpo_project?fields=*, tags.jpo_tags_id.name, medias.*`);
+      const data = await response.json();
+      setProjects(data.data || []);
     };
 
     const fetchTags = async () => {
+      const response = await fetch(`https://directus-ucmn.onrender.com/items/jpo_tags`);
+      const data = await response.json();
+      const tagNames = data.data.map((tag: { name: string }) => tag.name);
+      setTags(["All", ...tagNames]);
+    };
+
+    const fetchData = async () => {
       try {
-        const response = await fetch(`https://directus-ucmn.onrender.com/items/jpo_tags`);
-        const data = await response.json();
-        const tagNames = data.data.map((tag) => tag.name);
-        setTags(["All", ...tagNames]);
+        await Promise.all([fetchProjects(), fetchTags()]);
       } catch (error) {
-        console.error("Error fetching tags:", error);
+        console.error("Error fetching data:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    fetchProjects();
-    fetchTags();
-    setIsLoading(false);
+    fetchData();
   }, []);
+
+  const handleDelete = async (id: number) => {
+    try {
+      await fetch(`https://directus-ucmn.onrender.com/items/jpo_project/${id}`, {
+        method: "DELETE",
+      });
+      setProjects((prevProjects) => prevProjects.filter((project) => project.id !== id));
+    } catch (error) {
+      console.error("Error deleting project:", error);
+    }
+  };
 
   const filteredProjects = projects.filter((project) => {
     const matchesSearch =
-      project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      project.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      project.authors.some((author) =>
-        `${author.first_name} ${author.last_name}`.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-
+      (project.title?.toLowerCase().includes(searchTerm.toLowerCase()) || '') ||
+      (project.description?.toLowerCase().includes(searchTerm.toLowerCase()) || '') ||
+      (project.authors?.some((author) =>
+        `${author.first_name || ''} ${author.last_name || ''}`.toLowerCase().includes(searchTerm.toLowerCase())
+      ) || false);
+  
     const matchesTag =
       selectedTag === "All" ||
-      (project.tags && project.tags.some((tag) => tag.jpo_tags_id.name === selectedTag));
-
+      (project.tags && project.tags.some((tag) => tag.jpo_tags_id?.name === selectedTag));
+  
     return matchesSearch && matchesTag;
-  });
+  });  
 
   if (isLoading) {
     return <Loader />;
@@ -65,12 +85,6 @@ function ProjectList() {
         <p className="text-xl text-gray-700 dark:text-gray-300 max-w-2xl mx-auto mb-8">
           Nos étudiants repoussent les limites de la créativité et de la technologie. Explorez leurs projets, des œuvres qui transforment leurs idées en réalisations concrètes et innovantes. Embarquez dans cette aventure et découvrez le talent de demain.
         </p>
-        <Link
-          to="#projects-section"
-          className="bg-[#F08113] dark:bg-orange-400 text-white py-3 px-6 rounded-full text-lg font-semibold shadow-md hover:bg-[#cf6f0c] dark:hover:bg-orange-300 transition"
-        >
-          Découvrez nos Projets
-        </Link>
       </header>
 
       <div id="projects-section" className="flex flex-col md:flex-row justify-center mb-8 gap-4">
@@ -121,6 +135,19 @@ function ProjectList() {
             <Link to={`/project/${project.id}`} className="text-[#F08113] dark:text-orange-400 font-medium hover:underline">
               Voir plus
             </Link>
+            {isUserAdmin && (
+              <div className="flex mt-4 gap-2">
+                <button
+                  onClick={() => handleDelete(project.id)}
+                  className="text-red-500 hover:text-red-700"
+                >
+                  Supprimer
+                </button>
+                <Link to={`/project/${project.id}/edit`} className="text-blue-500 hover:text-blue-700">
+                  Modifier
+                </Link>
+              </div>
+            )}
           </div>
         ))}
       </div>

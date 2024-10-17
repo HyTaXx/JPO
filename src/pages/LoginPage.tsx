@@ -3,13 +3,15 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Loader } from "@components";
 import { isAdmin } from "@services";
+import { useAuth } from "../contexts/AuthContext";
 
-function Login() {
-  const [email, setEmail] = useState("");
-  const [motDePasse, setMotDePasse] = useState("");
-  const [erreur, setErreur] = useState("");
+const Login: React.FC = () => {
+  const { setIsAdmin } = useAuth(); // Destructure setIsAdmin from context
+  const [email, setEmail] = useState<string>("");
+  const [motDePasse, setMotDePasse] = useState<string>("");
+  const [erreur, setErreur] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -19,7 +21,7 @@ function Login() {
       // Attempt to login and get the access token
       const loginResponse = await axios.post("https://directus-ucmn.onrender.com/auth/login", {
         email,
-        password: motDePasse
+        password: motDePasse,
       });
       const { access_token } = loginResponse.data.data;
 
@@ -27,17 +29,18 @@ function Login() {
       setIsLoading(false);
 
       if (userIsAdmin) {
-        // Stocker le token si l'utilisateur est un admin
+        // Store the token and update admin status
         localStorage.setItem("access_token", access_token);
         localStorage.setItem("Role", "Administrator");
-        navigate("/"); // Redirection après connexion réussie
-    } else {
+        setIsAdmin(true); // Update context with admin status
+        navigate("/"); // Redirect after successful login
+      } else {
         setErreur("Vous n'avez pas les autorisations nécessaires pour accéder à cette page.");
-    }
+      }
     } catch (err: any) {
       setIsLoading(false);
       // Extract error message from the response
-      if (err.response && err.response.data && err.response.data.errors) {
+      if (axios.isAxiosError(err) && err.response?.data?.errors) {
         const messageErreur = err.response.data.errors[0].message;
         setErreur(messageErreur);
       } else {
@@ -50,8 +53,7 @@ function Login() {
     <>
       {isLoading ? (
         <Loader />
-      ) :
-
+      ) : (
         <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
           <div className="w-full max-w-md p-8 space-y-8 bg-white rounded shadow dark:bg-gray-800">
             <h2 className="text-3xl font-extrabold text-center text-gray-900 dark:text-gray-100">Connexion</h2>
@@ -94,9 +96,9 @@ function Login() {
             </form>
           </div>
         </div>
-      }
+      )}
     </>
   );
-}
+};
 
 export default Login;
